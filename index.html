@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>📚 Bookstore Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f4f6f8;
+            padding: 20px;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #ffffff;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input,
+        select {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+
+        button {
+            background: #3498db;
+            color: #fff;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        .section-title {
+            margin-top: 30px;
+            margin-bottom: 10px;
+            color: #34495e;
+            font-size: 19px;
+            font-weight: 600;
+        }
+
+        .book-item {
+            border-bottom: 1px solid #ddd;
+            padding: 15px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .book-info {
+            flex-grow: 1;
+        }
+
+        .book-title {
+            font-weight: 600;
+            font-size: 18px;
+            color: #2c3e50;
+        }
+
+        .book-meta {
+            margin-top: 5px;
+            color: #555;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #2980b9;
+            font-size: 16px;
+        }
+
+        .icon-btn:hover {
+            color: #1c5981;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        .modal-content input {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .modal-content button {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .chip {
+            background: #e1f0fa;
+            padding: .5em 1em;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-right: 5px;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .chip i {
+            margin-left: 5px;
+            cursor: pointer;
+            color: #3498db;
+        }
+
+        .active-filters {
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1><i class="fas fa-book"></i> Bookstore API Manager</h1>
+
+        <div class="section-title"><i class="fas fa-plus-circle"></i> Add Book</div>
+        <div class="input-group">
+            <input id="title" placeholder="Title" />
+            <input id="author" placeholder="Author" />
+            <input id="isbn" placeholder="ISBN" />
+            <input id="year" placeholder="Year" type="number" min="1800" max="2100" />
+            <button onclick="addBook()"><i class="fas fa-plus"></i> Add</button>
+        </div>
+
+        <div class="section-title"><i class="fas fa-search"></i> Search & Filter Books</div>
+        <div class="filter-row">
+            <input id="searchTitle" placeholder="Search by Title" />
+            <input id="searchAuthor" placeholder="Search by Author" />
+            <input id="searchYear" placeholder="Filter by Year" type="number" min="1800" max="2100" />
+        </div>
+        <div class="filter-row">
+            <button onclick="searchBooks()"><i class="fas fa-search"></i> Search</button>
+            <button onclick="resetFilters()"><i class="fas fa-times"></i> Clear Filters</button>
+            <button onclick="loadBooks()"><i class="fas fa-sync-alt"></i> Refresh</button>
+        </div>
+
+        <div id="activeFilters" class="active-filters"></div>
+
+        <div class="section-title"><i class="fas fa-book-reader"></i> Books</div>
+        <div id="bookList"></div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h2>Edit Book</h2>
+            <input id="editTitle" placeholder="Title" />
+            <input id="editAuthor" placeholder="Author" />
+            <input id="editIsbn" placeholder="ISBN" />
+            <input id="editYear" placeholder="Year" type="number" min="1800" max="2100" />
+            <button onclick="updateBook()">Save Changes</button>
+            <button onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        let editingBookId = null;
+        let currentFilters = {};
+
+        // Load books when page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            loadBooks();
+        });
+
+        async function loadBooks() {
+            const res = await fetch('api/book.php');
+            const books = await res.json();
+            displayBooks(books);
+            updateFilterDisplay();
+        }
+
+        async function addBook() {
+            const title = document.getElementById('title').value;
+            const author = document.getElementById('author').value;
+            const isbn = document.getElementById('isbn').value;
+            const year = document.getElementById('year').value;
+
+            if (!title || !author || !isbn) {
+                alert('Please fill in at least title, author and ISBN fields');
+                return;
+            }
+
+            const book = {
+                title: title,
+                author: author,
+                isbn: isbn,
+                publication_year: year,
+            };
+
+            try {
+                await fetch('api/book.php', {
+                    method: 'POST',
+                    body: JSON.stringify(book),
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                clearFields();
+                loadBooks();
+            } catch (error) {
+                console.error('Error adding book:', error);
+                alert('Failed to add book. Please try again.');
+            }
+        }
+
+        function clearFields() {
+            document.getElementById('title').value = '';
+            document.getElementById('author').value = '';
+            document.getElementById('isbn').value = '';
+            document.getElementById('year').value = '';
+        }
+
+        function resetFilters() {
+            document.getElementById('searchTitle').value = '';
+            document.getElementById('searchAuthor').value = '';
+            document.getElementById('searchYear').value = '';
+            currentFilters = {};
+            loadBooks();
+        }
+
+        function updateFilterDisplay() {
+            const filterContainer = document.getElementById('activeFilters');
+            filterContainer.innerHTML = '';
+
+            let hasFilters = false;
+
+            if (currentFilters.title) {
+                filterContainer.innerHTML += `
+                    <span class="chip">
+                        Title: ${currentFilters.title}
+                        <i class="fas fa-times" onclick="removeFilter('title')"></i>
+                    </span>
+                `;
+                hasFilters = true;
+            }
+
+            if (currentFilters.author) {
+                filterContainer.innerHTML += `
+                    <span class="chip">
+                        Author: ${currentFilters.author}
+                        <i class="fas fa-times" onclick="removeFilter('author')"></i>
+                    </span>
+                `;
+                hasFilters = true;
+            }
+
+            if (currentFilters.year) {
+                filterContainer.innerHTML += `
+                    <span class="chip">
+                        Year: ${currentFilters.year}
+                        <i class="fas fa-times" onclick="removeFilter('year')"></i>
+                    </span>
+                `;
+                hasFilters = true;
+            }
+
+            if (!hasFilters) {
+                filterContainer.innerHTML = '';
+            }
+        }
+
+        function removeFilter(filterType) {
+            delete currentFilters[filterType];
+            document.getElementById(`search${filterType.charAt(0).toUpperCase() + filterType.slice(1)}`).value = '';
+            applyFilters();
+        }
+
+        async function searchBooks() {
+            const title = document.getElementById('searchTitle').value;
+            const author = document.getElementById('searchAuthor').value;
+            const year = document.getElementById('searchYear').value;
+
+            // Update current filters
+            if (title) currentFilters.title = title;
+            else delete currentFilters.title;
+
+            if (author) currentFilters.author = author;
+            else delete currentFilters.author;
+
+            if (year) currentFilters.year = year;
+            else delete currentFilters.year;
+
+            applyFilters();
+        }
+
+        async function applyFilters() {
+            // Build query string from current filters
+            const params = new URLSearchParams();
+
+            if (currentFilters.title) params.append('title', currentFilters.title);
+            if (currentFilters.author) params.append('author', currentFilters.author);
+            if (currentFilters.year) params.append('year', currentFilters.year);
+
+            const queryString = params.toString();
+            const endpoint = queryString ? `api/search.php?${queryString}` : 'api/book.php';
+
+            try {
+                const res = await fetch(endpoint);
+                const books = await res.json();
+                displayBooks(books);
+                updateFilterDisplay();
+            } catch (error) {
+                console.error('Error applying filters:', error);
+                alert('Failed to filter books. Please try again.');
+            }
+        }
+
+        function displayBooks(books) {
+            const container = document.getElementById('bookList');
+
+            if (books.length === 0) {
+                container.innerHTML = `<p>No books found matching your criteria.</p>`;
+                return;
+            }
+
+            container.innerHTML = books
+                .map(
+                    (book) => `
+                    <div class="book-item">
+                        <div class="book-info">
+                            <div class="book-title"><i class="fas fa-book icon"></i> ${book.title}</div>
+                            <div class="book-meta"><i class="fas fa-user icon"></i> ${book.author}</div>
+                            <div class="book-meta"><i class="fas fa-barcode icon"></i> ${book.isbn}</div>
+                            <div class="book-meta"><i class="fas fa-calendar icon"></i> ${book.publication_year || 'N/A'}</div>
+                        </div>
+                        <div class="actions">
+                            <button class="icon-btn" onclick='showEditModal(${JSON.stringify(book)})'><i class="fas fa-edit"></i></button>
+                            <button class="icon-btn" onclick="deleteBook(${book.id})"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                `
+                )
+                .join('');
+        }
+
+        function showEditModal(book) {
+            editingBookId = book.id;
+            document.getElementById('editTitle').value = book.title;
+            document.getElementById('editAuthor').value = book.author;
+            document.getElementById('editIsbn').value = book.isbn;
+            document.getElementById('editYear').value = book.publication_year;
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('editModal').style.display = 'none';
+            editingBookId = null;
+        }
+
+        // Update Book
+        async function updateBook() {
+            const updatedBook = {
+                id: editingBookId,
+                title: document.getElementById('editTitle').value,
+                author: document.getElementById('editAuthor').value,
+                isbn: document.getElementById('editIsbn').value,
+                publication_year: document.getElementById('editYear').value,
+            };
+
+            try {
+                await fetch('api/book.php', {
+                    method: 'PUT',
+                    body: JSON.stringify(updatedBook),
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                closeModal();
+
+                // Re-apply current filters after updating
+                applyFilters();
+            } catch (error) {
+                console.error('Error updating book:', error);
+                alert('Failed to update book. Please try again.');
+            }
+        }
+
+        // Delete Book
+        async function deleteBook(id) {
+            if (!confirm("Are you sure you want to delete this book?")) return;
+
+            try {
+                await fetch(`api/book.php?id=${id}`, {
+                    method: 'DELETE',
+                });
+
+                // Re-apply current filters after deleting
+                applyFilters();
+            } catch (error) {
+                console.error('Error deleting book:', error);
+                alert('Failed to delete book. Please try again.');
+            }
+        }
+    </script>
+</body>
+
+</html>
